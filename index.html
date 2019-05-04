@@ -1,0 +1,97 @@
+<link href="https://fonts.googleapis.com/css?family=Montserrat|Roboto+Condensed" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+
+<style>
+    body {
+        background-color: rgb(210, 210, 210);
+        font-family: "Montserrat", sans-serif;
+        color: white;
+    }
+    
+    div#content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        overflow: auto;
+        max-height: 100%;
+    }
+    
+    h1 {
+        text-shadow: 0px 0px 10px black;
+    }
+    
+    input[type="text"] {
+        background-color: transparent;
+        border-style: solid;
+        border-width: 1px;
+        color: black;
+        font-size: 30px;
+        border-color: black;
+        font-family: "Montserrat", sans-serif;
+    }
+    
+    button {
+        font-family: "Montserrat", sans-serif;
+        font-size: 30px;
+        background-color: #00afff;
+        border-style: none;
+        /*box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.5);*/
+        color: white;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    button:hover {
+        background-color: #48c5ff;
+    }
+</style>
+<h1 style="float: left;font-family: 'Roboto Condensed', sans-serif">GitHub <span style="color: #00afff">Downloads</span>
+</h1>
+<div id="content">
+    <input id="username" type="text" placeholder="GitHub Username" /> <span style="font-size: 30px;">/</span> <input id="repo" type="text" placeholder="GitHub Repo" /><br /><br />
+    <button id="submit">Let's go</button><br /><br />
+    <div id="data"></div>
+</div>
+
+<script>
+    var username = document.getElementById("username");
+    var repo = document.getElementById("repo");
+    var button = document.getElementById("submit");
+    var dataObj = document.getElementById("data");
+
+    button.addEventListener("click", function() {
+        $.ajax({
+            url: `https://api.github.com/repos/${username.value}/${repo.value}/releases`
+        }).done(function(data) {
+            dataObj.innerHTML = "";
+            if (data.length == 0) {
+                dataObj.innerHTML = "This repository has no releases.";
+            }
+            var full_downloads = 0;
+            for (i = 0; i < data.length; i++) {
+                // Calculate number of downloads
+                for (x = 0; x < data[i].assets.length; x++) {
+                    full_downloads += data[i].assets[x].download_count;
+                }
+            }
+            dataObj.innerHTML += `<h2>This repository has been downloaded <span style="color:#00afff;font-weight:bold;">${full_downloads}</span> times.</h2>`;
+            for (i = 0; i < data.length; i++) {
+                // Calculate number of downloads
+                var downloads = 0;
+                for (x = 0; x < data[i].assets.length; x++) {
+                    downloads += data[i].assets[x].download_count;
+                }
+                dataObj.innerHTML += `<h2 style="color: #00afff">${data[i].tag_name} (${downloads} downloads)</h2>`;
+                for (x = 0; x < data[i].assets.length; x++) {
+                    dataObj.innerHTML += `${data[i].assets[x].name}: <span style="color: #00afff;font-weight:bold">${data[i].assets[x].download_count} ` + (parseInt(data[i].assets[x].download_count) == 1 ? "download" : "downloads") + "</span><br />";
+                }
+            }
+            //dataObj.innerHTML = JSON.stringify(data);
+        }).fail(function() {
+            dataObj.innerHTML == "I can't find this repository.";
+        });
+    });
+</script>
